@@ -1,0 +1,4 @@
+# Variant 6 sample: radius/height for round shapes, four vertices for tetrahedron.
+cone 3 4
+cylinder 2 5
+tetrahedron 0 0 0  1 0 0  0 1 0  0 0 1
