@@ -62,7 +62,7 @@ def latex_plain(text: str) -> str:
 def plain(text: str) -> str:
     text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
-    text = text.replace("**", "").replace("__", "")
+    text = text.replace("**", "")
     text = text.replace("`", "").replace("*", "")
     text = text.replace(r"\(", "").replace(r"\)", "")
     text = text.replace(r"\[", "").replace(r"\]", "")
@@ -150,12 +150,12 @@ def parse_source() -> list[Page]:
             while i < len(lines) and not lines[i].startswith(r"\]"):
                 math_lines.append(lines[i])
                 i += 1
-            blocks.append(Block("equation", plain(" ".join(math_lines))))
+            blocks.append(Block("equation", " ".join(math_lines).strip()))
             i += 1
             continue
         is_ordered_list = bool(re.match(r"^\s*\d+\.\s", line)) and not re.search(r"\.{3,}", line)
         if line.startswith("- ") or is_ordered_list:
-            blocks.append(Block("list", plain(line)))
+            blocks.append(Block("ordered_list" if is_ordered_list else "list", plain(line)))
             i += 1
             continue
         para = [line.strip()]
@@ -205,11 +205,13 @@ R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 WP = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
 PIC = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+M = "http://schemas.openxmlformats.org/officeDocument/2006/math"
 ET.register_namespace("w", W)
 ET.register_namespace("r", R)
 ET.register_namespace("wp", WP)
 ET.register_namespace("a", A)
 ET.register_namespace("pic", PIC)
+ET.register_namespace("m", M)
 
 
 def wtag(name: str) -> str:
@@ -262,11 +264,171 @@ def add_paragraph(parent: ET.Element, text: str = "", *, style: str = "Normal",
     return p
 
 
+def math_tag(name: str) -> str:
+    return f"{{{M}}}{name}"
+
+
+def math_run(text: str) -> ET.Element:
+    run = ET.Element(math_tag("r"))
+    props = xml_el(run, math_tag("rPr"))
+    xml_el(props, math_tag("sty"), {math_tag("val"): "i"})
+    xml_el(run, math_tag("t"), text=text)
+    return run
+
+
+def parse_math_group(source: str, pos: int, require_braces: bool = True) -> tuple[list[ET.Element], int]:
+    while pos < len(source) and source[pos].isspace():
+        pos += 1
+    if pos >= len(source):
+        return [], pos
+    if source[pos] == "{":
+        return parse_math_sequence(source, pos + 1, stop_at_brace=True)
+    if require_braces:
+        return [], pos
+    if source[pos] == "\\":
+        return parse_math_sequence(source, pos, one_atom=True)
+    atom = math_run(source[pos])
+    return [atom], pos + 1
+
+
+def parse_math_sequence(source: str, pos: int = 0, *, stop_at_brace: bool = False,
+                        one_atom: bool = False) -> tuple[list[ET.Element], int]:
+    nodes: list[ET.Element] = []
+    while pos < len(source):
+        if source[pos].isspace():
+            pos += 1
+            continue
+        if source[pos] == "}" and stop_at_brace:
+            return nodes, pos + 1
+        if source[pos] in "_^" and nodes:
+            marker = source[pos]
+            pos += 1
+            suffix, pos = parse_math_group(source, pos, require_braces=False)
+            base = nodes.pop()
+            wrapper_name = "sSub" if marker == "_" else "sSup"
+            wrapper = ET.Element(math_tag(wrapper_name))
+            xml_el(wrapper, math_tag(wrapper_name + "Pr"))
+            base_node = xml_el(wrapper, math_tag("e"))
+            base_node.append(base)
+            sub_or_sup = xml_el(wrapper, math_tag("sub" if marker == "_" else "sup"))
+            for item in suffix:
+                sub_or_sup.append(item)
+            nodes.append(wrapper)
+            continue
+        if source[pos] == "\\":
+            match = re.match(r"\\([A-Za-z]+|.)", source[pos:])
+            if not match:
+                pos += 1
+                continue
+            command = match.group(1)
+            pos += len(match.group(0))
+            if command == "frac":
+                numerator, pos = parse_math_group(source, pos)
+                denominator, pos = parse_math_group(source, pos)
+                fraction = ET.Element(math_tag("f"))
+                xml_el(fraction, math_tag("fPr"))
+                num = xml_el(fraction, math_tag("num"))
+                den = xml_el(fraction, math_tag("den"))
+                for item in numerator: num.append(item)
+                for item in denominator: den.append(item)
+                nodes.append(fraction)
+            elif command == "sqrt":
+                rad = ET.Element(math_tag("rad"))
+                radpr = xml_el(rad, math_tag("radPr"))
+                xml_el(radpr, math_tag("degHide"), {math_tag("val"): "1"})
+                xml_el(rad, math_tag("deg"))
+                content = xml_el(rad, math_tag("e"))
+                value, pos = parse_math_group(source, pos)
+                for item in value: content.append(item)
+                nodes.append(rad)
+            elif command == "overrightarrow":
+                accent = ET.Element(math_tag("acc"))
+                props = xml_el(accent, math_tag("accPr"))
+                xml_el(props, math_tag("chr"), {math_tag("val"): "→"})
+                content = xml_el(accent, math_tag("e"))
+                value, pos = parse_math_group(source, pos)
+                for item in value: content.append(item)
+                nodes.append(accent)
+            else:
+                symbols = {"pi": "π", "cdot": "·", "times": "×", "qquad": "  ",
+                           "quad": " ", ",": " ", ";": " ", "!": "", "|": "‖",
+                           "le": "≤", "ge": "≥", "neq": "≠", "infty": "∞",
+                           "text": ""}
+                if command == "text":
+                    value, pos = parse_math_group(source, pos)
+                    nodes.extend(value)
+                elif command == "left" or command == "right":
+                    pass
+                else:
+                    nodes.append(math_run(symbols.get(command, command)))
+            if one_atom:
+                break
+            continue
+        nodes.append(math_run(source[pos]))
+        pos += 1
+        if one_atom:
+            break
+    return nodes, pos
+
+
+def add_equation(parent: ET.Element, latex: str, number: int) -> None:
+    """Add a centered, editable Office Math equation with a right-aligned number."""
+    table = xml_el(parent, wtag("tbl"))
+    props = xml_el(table, wtag("tblPr"))
+    xml_el(props, wtag("tblW"), {wtag("w"): "9360", wtag("type"): "dxa"})
+    borders = xml_el(props, wtag("tblBorders"))
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        xml_el(borders, wtag(edge), {wtag("val"): "nil"})
+    grid = xml_el(table, wtag("tblGrid"))
+    for width in ("1560", "6240", "1560"):
+        xml_el(grid, wtag("gridCol"), {wtag("w"): width})
+    row = xml_el(table, wtag("tr"))
+    cells = []
+    for width in ("1560", "6240", "1560"):
+        cell = xml_el(row, wtag("tc"))
+        xml_el(xml_el(cell, wtag("tcPr")), wtag("tcW"), {wtag("w"): width, wtag("type"): "dxa"})
+        cells.append(cell)
+    add_paragraph(cells[0], first_line=False, after=0, line=300, size=28)
+    formula = latex.strip().removeprefix(r"\[").removesuffix(r"\]").strip()
+    nodes, _ = parse_math_sequence(formula)
+    p = add_paragraph(cells[1], first_line=False, align="center", after=0, line=300, size=28)
+    omath = xml_el(p, math_tag("oMath"))
+    for node in nodes: omath.append(node)
+    add_paragraph(cells[2], f"({number})", first_line=False, align="right", after=0, line=300, size=28)
+
+
+def add_cover(parent: ET.Element) -> None:
+    """Render the Appendix Б cover composition with the confirmed variant details."""
+    entries = [
+        ("Івано-Франківський національний технічний", 28, True, 1300, 0),
+        ("університет нафти і газу", 28, True, 0, 280),
+        ("Кафедра комп’ютерних систем і мереж", 28, True, 0, 820),
+        ("КУРСОВА РОБОТА", 32, True, 0, 260),
+        ("з дисципліни ОБ’ЄКТНО-ОРІЄНТОВАНЕ ПРОГРАМУВАННЯ", 26, False, 0, 1000),
+        ("Тема: Розрахунок відношення об’єму фігури до її площі:", 28, False, 0, 40),
+        ("конус, тетраедр, циліндр", 28, False, 0, 850),
+        ("ПОЯСНЮВАЛЬНА ЗАПИСКА", 32, True, 0, 220),
+        ("КР.КІ — __.00.000.ПЗ", 28, False, 0, 850),
+        ("Студент гр. КІ-26-1К  ____________  Павлюк О. М.", 28, False, 1100, 0),
+        ("(підпис)", 20, False, 0, 0),
+        ("Павлюк Остап Мирославович", 26, False, 0, 850),
+        ("Допускається до захисту", 28, True, 0, 260),
+        ("Керівник курсової роботи", 26, False, 0, 180),
+        ("____________________________________________", 26, False, 0, 0),
+        ("(посада)       (підпис)       (дата)       (розшифровка підпису)", 18, False, 0, 850),
+        ("м. Івано-Франківськ", 26, False, 0, 160),
+        ("2026", 26, False, 0, 0),
+    ]
+    for text, size, bold, before, after in entries:
+        add_paragraph(parent, text, align="center", first_line=False, before=before,
+                      after=after, line=260, bold=bold, size=size)
+
+
 def add_toc_field(parent: ET.Element) -> None:
     p = add_paragraph(parent, first_line=False, after=0, line=240, size=22)
     field = xml_el(p, wtag("fldSimple"),
                    {wtag("instr"): ' TOC \\o "1-2" \\h \\z \\u '})
-    add_run(field, "Оновіть поле змісту в редакторі документів.", size=22)
+    add_run(field, "ЗМІСТ", size=22)
 
 
 def add_image(parent: ET.Element, image: Path, rel_id: str, caption: str = "") -> None:
@@ -290,13 +452,15 @@ def add_image(parent: ET.Element, image: Path, rel_id: str, caption: str = "") -
         width_px, height_px = im.size
     width_in = 6.0
     if image.name == "class-diagram.png":
-        width_in = 4.8
+        width_in = 6.45
     elif image.name == "sequence-diagram.png":
         width_in = 4.9
     elif image.name == "use-case.png":
         width_in = 4.8
     elif image.name.startswith("processing-flowchart"):
         width_in = 5.2
+    elif image.name == "application-run.png":
+        width_in = 5.0
     elif "PLACEHOLDER" in image.name:
         width_in = 4.5
     cx = round(width_in * 914400)
@@ -348,6 +512,7 @@ def build_docx(pages: list[Page]) -> None:
     xml_el(content_types, f"{{{ct}}}Override", {"PartName": "/word/styles.xml", "ContentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"})
     xml_el(content_types, f"{{{ct}}}Override", {"PartName": "/word/settings.xml", "ContentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"})
     framed_page = 0
+    equation_number = 0
     toc_scope = False
     for page_no, page in enumerate(pages, 1):
         h = next((b.text for b in page.blocks if b.kind == "heading"), "")
@@ -355,7 +520,11 @@ def build_docx(pages: list[Page]) -> None:
             toc_scope = True
         if page.section == "framed":
             framed_page += 1
+        if page.kind == "cover":
+            add_cover(body)
         for b in page.blocks:
+            if page.kind == "cover":
+                continue
             if b.kind == "heading":
                 if b.text == "ЗМІСТ":
                     toc_scope = False
@@ -364,14 +533,21 @@ def build_docx(pages: list[Page]) -> None:
                                   style=heading_style,
                                   align="center" if b.level == 1 else "left",
                                   first_line=False, before=0, after=0, bold=True, size=28)
-            elif b.kind in ("paragraph", "list", "equation"):
+            elif b.kind in ("paragraph", "list", "ordered_list", "equation"):
+                if b.kind == "equation":
+                    equation_number += 1
+                    add_equation(body, b.text, equation_number)
+                    continue
                 text = b.text
                 if b.kind == "list":
                     text = "• " + text.lstrip("- ")
                 body_size = 24 if page.kind == "abstracts" else 28
                 body_line = 300 if page.kind == "abstracts" else 420
-                add_paragraph(body, text, align="center" if b.kind == "equation" else "both",
-                              first_line=b.kind == "paragraph", after=0,
+                form_page = page.kind in ("assignment", "calendar")
+                form_align = "left" if form_page else "both"
+                add_paragraph(body, text, align="center" if b.kind == "equation" else form_align,
+                              first_line=b.kind == "paragraph" and not form_page,
+                              after=60 if form_page else 0,
                               line=body_line, size=body_size)
             elif b.kind == "code":
                 for line in b.text.splitlines():
@@ -391,8 +567,9 @@ def build_docx(pages: list[Page]) -> None:
                     tr = xml_el(tbl, wtag("tr"))
                     for val in row:
                         tc = xml_el(tr, wtag("tc"))
-                        p = add_paragraph(tc, plain(val), first_line=False, after=30, line=250,
-                                          bold=ri == 0, size=22)
+                        p = add_paragraph(tc, plain(val), first_line=False,
+                                          align="center" if ri == 0 else "left",
+                                          after=30, line=250, bold=ri == 0, size=24)
             elif b.kind == "image" and b.image and b.image.exists():
                 add_image(body, b.image, image_rels[b.image], b.text)
         break_p = xml_el(body, wtag("p"))
@@ -418,40 +595,66 @@ def build_docx(pages: list[Page]) -> None:
             xml_el(tblpr, wtag("tblInd"), {wtag("w"): "-283", wtag("type"): "dxa"})
             borders = xml_el(tblpr, wtag("tblBorders"))
             for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-                xml_el(borders, wtag(edge), {wtag("val"): "single", wtag("sz"): "6", wtag("color"): "000000"})
+                xml_el(borders, wtag(edge), {wtag("val"): "single", wtag("sz"): "4", wtag("color"): "000000"})
             grid = xml_el(tbl, wtag("tblGrid"))
-            xml_el(grid, wtag("gridCol"), {wtag("w"): "7650"})
-            xml_el(grid, wtag("gridCol"), {wtag("w"): "2838"})
-            for row_idx in range(2):
+            is_g1 = framed_page == 1
+            widths = (("396", "567", "1304", "850", "567", "3969", "567", "1134", "1134")
+                      if is_g1 else
+                      ("396", "567", "1304", "850", "567", "6236", "568"))
+            for width in widths:
+                xml_el(grid, wtag("gridCol"), {wtag("w"): width})
+            title = "Розрахунок відношення об’єму фігури до її площі: конус, тетраедр, циліндр"
+            if is_g1:
+                labels = ("Зм.", "Арк.", "№ докум.", "Підпис", "Дата", "Найменування роботи", "Літ.", "Аркуш", "Аркушів")
+                values = ("", "", "", "", "", title, "Н", str(page_no), str(len(pages)))
+                row_specs = ((283, labels), (283, values))
+                lower_rows = [
+                    [("Розробив: Павлюк О. М.", 5), ("Позначення документа: КР.КІ — __.00.000.ПЗ", 1), ("Перевірив: __________", 3)],
+                    [("Н.контр.: __________", 5), ("ІФНТУНГ · КІ-26-1К", 1), ("Затвердив: __________", 3)],
+                    [("Підпис і дата розробника: __________", 5), ("Пояснювальна записка · варіант № 6", 1), ("Підпис і дата керівника: __________", 3)],
+                ]
+            else:
+                labels = ("Зм.", "Арк.", "№ докум.", "Підпис", "Дата", "Позначення документа", "Арк.")
+                values = ("", "", "", "", "", "КР.КІ — __.00.000.ПЗ", str(page_no))
+                row_specs = ((283, labels), (567, values))
+                lower_rows = []
+            # Appendix Г1 includes total sheet count; Г2 carries the document
+            # designation and current sheet number without the G1-only fields.
+            def add_frame_row(height: int, entries: list[tuple[str, int]], row_idx: int) -> None:
                 row = xml_el(tbl, wtag("tr"))
                 trpr = xml_el(row, wtag("trPr"))
-                xml_el(trpr, wtag("trHeight"), {wtag("val"): "850" if row_idx == 0 else "2268", wtag("hRule"): "exact"})
-                for col_idx, width in enumerate(("7650", "2838")):
+                xml_el(trpr, wtag("trHeight"), {wtag("val"): str(height), wtag("hRule"): "exact"})
+                col_idx = 0
+                for value, span in entries:
+                    width = str(sum(int(w) for w in widths[col_idx:col_idx + span]))
                     cell = xml_el(row, wtag("tc"))
                     tcpr = xml_el(cell, wtag("tcPr"))
                     xml_el(tcpr, wtag("tcW"), {wtag("w"): width, wtag("type"): "dxa"})
-                    if row_idx == 0 and col_idx == 0:
-                        add_paragraph(cell, "Розрахунок відношення об’єму фігури до її площі: конус, тетраедр, циліндр", first_line=False, after=30, line=210, size=16)
-                        add_paragraph(cell, "Позначення документа: [КР.КІ–[№].00.000.ПЗ]", first_line=False, after=0, line=210, size=16)
-                    elif row_idx == 0:
-                        add_paragraph(cell, f"Літера Н · {'Г1' if framed_page == 1 else 'Г2'}", first_line=False, align="center", after=30, line=210, size=16)
-                        sheet = add_paragraph(cell, align="center", first_line=False, after=0, line=210, size=16)
-                        add_run(sheet, "Аркуш ", size=16)
-                        page_field = xml_el(sheet, wtag("fldSimple"), {wtag("instr"): " PAGE "})
-                        add_run(page_field, str(page_no), size=16)
-                        add_run(sheet, " / ", size=16)
-                        count_field = xml_el(sheet, wtag("fldSimple"), {wtag("instr"): " NUMPAGES "})
-                        add_run(count_field, str(len(pages)), size=16)
-                    elif col_idx == 0:
-                        add_paragraph(cell, "Розробив: Павлюк О. М.     Перевірив: [керівник]", first_line=False, after=70, line=210, size=16)
-                        add_paragraph(cell, "Н. контр.: [заповнити]     Затвердив: [заповнити]", first_line=False, after=70, line=210, size=16)
-                        add_paragraph(cell, "ІФНТУНГ · КІ-26-1К · Павлюк О. М.", first_line=False, after=0, line=210, size=16)
-                    else:
-                        add_paragraph(cell, "Підписи й дати: [заповнюють відповідальні особи]", first_line=False, after=0, line=210, size=16)
-        elif page.section == "framed":
-            p = xml_el(froot, wtag("p"))
-            xml_el(xml_el(p, wtag("pPr")), wtag("jc"), {wtag("val"): "center"})
-            add_run(p, str(page_no), size=20)
+                    if span > 1:
+                        xml_el(tcpr, wtag("gridSpan"), {wtag("val"): str(span)})
+                    page_field_col = 7 if is_g1 else 6
+                    if row_idx == 1 and col_idx == page_field_col:
+                        paragraph = add_paragraph(cell, first_line=False, align="center", after=0, line=210, size=16)
+                        fld = xml_el(paragraph, wtag("fldSimple"), {wtag("instr"): " PAGE "})
+                        add_run(fld, str(page_no), size=16)
+                    elif row_idx == 1 and col_idx == 8 and is_g1:
+                        paragraph = add_paragraph(cell, first_line=False, align="center", after=0, line=210, size=16)
+                        fld = xml_el(paragraph, wtag("fldSimple"), {wtag("instr"): " NUMPAGES "})
+                        add_run(fld, str(len(pages)), size=16)
+                    elif row_idx == 1 and col_idx == 8 and is_g1:
+                        pass
+                    elif value and not (row_idx == 0 and col_idx == 8 and not is_g1):
+                        align = "center" if col_idx != 5 or span > 1 else "left"
+                        add_paragraph(cell, value, first_line=False, align=align,
+                                      after=0, line=190, size=12 if row_idx == 0 else 16,
+                                      bold=(row_idx == 0))
+                    if cell.find(wtag("p")) is None:
+                        add_paragraph(cell, first_line=False, after=0, line=190, size=14)
+                    col_idx += span
+            for row_idx, (height, row_values) in enumerate(row_specs):
+                add_frame_row(height, [(value, 1) for value in row_values], row_idx)
+            for lower_idx, entries in enumerate(lower_rows, 2):
+                add_frame_row(850, entries, lower_idx)
         else:
             xml_el(froot, wtag("p"))
         footer_xml = ET.tostring(froot, encoding="utf-8", xml_declaration=True)

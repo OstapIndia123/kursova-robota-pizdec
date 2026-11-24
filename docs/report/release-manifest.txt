@@ -25,12 +25,16 @@ Verification performed
 - Fresh Release configure/build in build-oop-course-005-evidence completed with GNU C++ 16.2.0 and C++17.
 - CTest: 1/1 test entry passed; direct test executable: all 66 assertions passed.
 - Sample examples/shapes.txt run exited 0. Three output rows matched between console and output file exactly after removing the interactive prompt.
-- DOCX archive integrity passed. PDF is 35 A4 pages; substantive body is 25 pages (pages 5–29). The refreshed TOC and page fields correspond to the exported PDF. All PDF pages were checked in a rendered contact sheet; the screenshot page and technical frames were inspected at full size.
+- DOCX archive integrity passed. PDF is 31 A4 pages; substantive body is 21 pages (pages 6–26). The refreshed TOC and page fields correspond to the exported PDF. All PDF pages were checked in a rendered contact sheet; the title page, assignment, G1/G2 frames, class diagram, and screenshot page were inspected at full size.
+- OOP-COURSE-008: methodology Appendices Б, В, and Г were rendered and visually compared with corresponding document pages. Appendix Б title composition and Appendix В assignment/calendar form sequence were checked; G1 is on the contents sheet and G2 on subsequent framed text sheets, with appendices unframed. Editable Word-table title blocks have approximate fine placement and line weights, not pixel-exact CAD reproduction.
+- OOP-COURSE-009: class diagram is enlarged to near the text-block width and its label font increased for print readability; the actual class/method set was checked against `include/`. Figure 2.1 remains on page 12. Draft wording and print/pagination author reminders were removed from the note; the AI declaration now refers to the completed explanatory note. The non-form administrative reminder appendix was removed; required blank fields remain on the official-style forms.
 - Build and test directories and binaries are excluded from the archive.
 
 Release limitations / pending items
-- Screenshot verified: valid 931×484 PNG; cone, cylinder, and tetrahedron result rows match `docs/report/evidence/oop-course-005/sample-console.txt` and `sample-output.txt` exactly. Embedded in Figure 3.2 on PDF page 27.
+- Screenshot verified: valid 931×484 PNG; cone, cylinder, and tetrahedron result rows match `docs/report/evidence/oop-course-005/sample-console.txt` and `sample-output.txt` exactly. Embedded in Figure 3.2 on PDF page 25.
 - Times New Roman is specified in the DOCX, but unavailable on this system; the PDF renderer substituted Liberation Serif.
+- Appendix Г title blocks use the measured dimensions and principal subdivisions, but retain minor line-weight and fine-position differences inherent in the Word-table recreation. Confirm whether the department requires a native CAD/template title block.
+- DOCX styles specify Times New Roman, but this system's LibreOffice export uses the metrically compatible Liberation Serif substitute; exact font appearance can differ on another system.
 - Confirmed student and group are entered: Павлюк Остап Мирославович, КІ-26-1К. Gradebook/document identifiers, supervisor, calendar dates, signatures, and approvals remain placeholders.
 - Instructor confirmation remains pending for total surface area, right circular cone/cylinder geometry, coordinate-defined general tetrahedron, and the 1e-12 degeneracy tolerance.
 - No compiled executable is packaged. The build is Linux-specific here; no Windows compatibility is asserted. Build on the intended demonstration platform using the included CMake project.

@@ -1,22 +1,20 @@
-OOP-COURSE-004-R3 final pagination verification
+OOP-COURSE-009 final pagination verification
 
 Canonical editable document: /home/ostaplindia/Projects/oop-coursework-2026/docs/report/coursework.docx
 Submission PDF exported by LibreOffice from that DOCX: /home/ostaplindia/Projects/oop-coursework-2026/docs/report/coursework.pdf
-PDF page count: 35; paper size: A4.
-The saved DOCX was the source of this PDF export; DOCX and PDF pagination are synchronized at 35 pages.
-Substantive main body: pages 5–29, 25 pages (required range 16–32).
+PDF page count: 31; paper size: A4.
+The saved DOCX was the source of this PDF export; DOCX and PDF pagination are synchronized at 31 pages.
+Substantive main body: pages 6–26, 21 pages (required range 16–32).
 Automatic Word-compatible TOC field was refreshed twice through LibreOffice UNO before saving/export.
-TOC contains chapter, subsection, conclusion, references, AI declaration, and appendix entries; the PDF page mapping was visually reviewed.
-Dynamic title-block PAGE/NUMPAGES fields verified on framed pages 4–32; each reads its physical page / 35.
+TOC on page 5 contains chapter, subsection, conclusion, references, AI declaration, and appendix entries; the PDF page mapping was visually reviewed.
+G1/G2 title-block sheet fields verified on framed pages 5–29; G1 includes total sheet count 31.
 Blank pages: none (checked by page-level text extraction).
-Sparse main-body continuation pages (nonblank): 6 (3 text lines), 12 (2 text lines), 28 (2 text lines).
-Visual inspection is recorded by the OOP-COURSE-004-R3 operator after rendering.
+Sparse main-body continuation pages (nonblank): none.
+Visual inspection: OOP-COURSE-009 rendered all 31 pages and reviewed the full contact sheet; title/assignment/calendar, contents/G1, class diagram, screenshot, AI declaration, and appendix pages were also inspected at larger size.
 
-OOP-COURSE-007 screenshot and release QA — 2026-11-24
-
-- Supplied `docs/report/screenshots/application-run.png` validated as PNG, 931×484 RGB. It shows the real application run and all three computed result rows; the displayed values exactly match the saved sample console and output records. The long terminal lines wrap at the screenshot's right edge, but all numeric results remain readable.
-- Replaced the placeholder in Markdown with the screenshot and caption Figure 3.2. Updated section 3.7 and appendix/rebuild reminders; retained legacy placeholder assets but they are not referenced in the note.
-- Screenshot binary is embedded in the canonical DOCX (package media hash matches the source PNG) and rendered on PDF page 27. It is legible at document scale.
-- PDF rasterized page-by-page into a 35-page contact sheet; inspected the complete sheet and page 27 at full size. No blank pages, clipped text, truncated diagrams, displaced frames, or incorrect title blocks observed. G1/G2 title blocks and page counters remain aligned; appendices retain their methodological layout.
-- Refreshed TOC maps section 3.7 to page 27, conclusions to page 30, references to page 31, AI declaration to page 32, and appendices to pages 33–35.
-- A4 PDF: 35 pages total; substantive main body pages 5–29, 25 pages. No source code, tests, or methodology changes were made.
+OOP-COURSE-009 visual and content QA
+Class diagram: Figure 2.1 on page 12; image width 6.45 in within the available text width. Graphviz node labels are 16 pt and edge labels 12 pt. Class names, attributes, constructors, virtual overrides, abstract base methods, and relationships were checked against headers under include/. Relationship notation shows Tetrahedron's four Vector3D values, FileProcessor's RecordResult vector, and RecordResult's unique_ptr to Shape3D.
+Assignment form page 2 has separate institution/department/discipline/specialty/course/group lines; calendar form remains page 3. Confirmed student identity and variant were retained. Official administrative blanks remain unfilled.
+Draft-language search on the exported PDF found no residual draft phrases or editorial instructions. Legitimate administrative blanks remain on the academic forms. The AI declaration refers to the explanatory note and identifies ChatGPT — OpenAI and Codex — OpenAI. The non-form administrative reminder appendix was removed; mathematical assumptions and pending instructor approval remain in section 1.6.
+The genuine application screenshot remains Figure 3.2 on page 25. All 31 pages were rendered; no blank spillover pages, clipping, misplaced figures, or broken displayed equations were observed in the contact sheet and representative full-size inspections.
+Formatting limitation: DOCX specifies Times New Roman, but this host lacks that font and the PDF uses Liberation Serif. G1/G2 are editable Word tables based on measured methodology dimensions; exact line-weight and fine-position reproduction remains approximate.

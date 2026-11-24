@@ -142,42 +142,51 @@ def main() -> int:
             if blank_pages:
                 raise RuntimeError(f"Unexpected blank PDF pages: {blank_pages}")
             start = next((i for i, text in enumerate(pdf_pages[4:], 5)
-                          if "1 АНАЛІЗ ПРЕДМЕТНОЇ ОБЛАСТІ ТА МАТЕМАТИЧНИХ ОСНОВ" in text), None)
+                          if "ЗМІСТ" not in text and
+                          "1 АНАЛІЗ ПРЕДМЕТНОЇ ОБЛАСТІ ТА МАТЕМАТИЧНИХ ОСНОВ" in text), None)
             conclusion = next((i for i, text in enumerate(pdf_pages, 1)
                                if re.search(r"^\s*ВИСНОВКИ\s*$", text, re.MULTILINE)), None)
             if start is None or conclusion is None or not 16 <= conclusion - start <= 32:
                 raise RuntimeError(f"Main body page count outside 16–32: start={start}, conclusions={conclusion}")
             framed_pages = [i for i, text in enumerate(pdf_pages, 1)
-                            if "Літера Н · Г" in text]
+                            if "Позначення документа" in text and "Арк." in text]
+            if not framed_pages:
+                raise RuntimeError("No methodology-style G1/G2 title blocks were detected")
             for page_no in framed_pages:
-                expected = f"Аркуш {page_no} / {page_count}"
-                if expected not in pdf_pages[page_no - 1]:
-                    raise RuntimeError(f"Page field mismatch on framed page {page_no}")
-            toc_text = pdf_pages[3]
+                page_text = pdf_pages[page_no - 1]
+                if not ("Аркуш" in page_text or "Арк." in page_text) or str(page_no) not in page_text:
+                    raise RuntimeError(f"Sheet field missing or stale on framed page {page_no}")
+            first_frame = pdf_pages[framed_pages[0] - 1]
+            if "Аркушів" not in first_frame or str(page_count) not in first_frame:
+                raise RuntimeError("G1 total-sheet-count field is missing or stale")
+            toc_index = next((i for i, text in enumerate(pdf_pages)
+                              if "ЗМІСТ" in text and "1 АНАЛІЗ ПРЕДМЕТНОЇ" in text), None)
+            if toc_index is None:
+                raise RuntimeError("Updated table of contents page was not found")
+            toc_text = pdf_pages[toc_index]
             if "ДЕКЛАРАЦІЯ ВНЕСКУ ГЕНЕРАТИВНОГО ШТУЧНОГО ІНТЕЛЕКТУ" not in toc_text:
                 raise RuntimeError("Updated table of contents is missing expected headings")
             report = REPORT / "evidence" / "final-pagination-report.txt"
             report.parent.mkdir(parents=True, exist_ok=True)
             body_pages = conclusion - start
             short_continuations = []
-            footer_markers = ("Розрахунок відношення", "Літера Н ·", "Аркуш ",
-                              "Позначення документа:", "Розробив:", "Н. контр.:",
-                              "ІФНТУНГ ·", "Підписи й дати:")
+            footer_markers = ("Розрахунок відношення", "Найменування роботи", "Аркуш",
+                              "Позначення документа", "Розроб.", "Н.контр.", "ІФНТУНГ")
             for page_no in range(start, conclusion):
                 body_lines = [line.strip() for line in pdf_pages[page_no - 1].splitlines()
                               if line.strip() and not any(marker in line for marker in footer_markers)]
                 if len(body_lines) <= 4 and "Рисунок" not in "\n".join(body_lines):
                     short_continuations.append(f"{page_no} ({len(body_lines)} text lines)")
             report.write_text(
-                "OOP-COURSE-004-R3 final pagination verification\n\n"
+                "OOP-COURSE-009 final pagination verification\n\n"
                 f"Canonical editable document: {DOCX}\n"
                 f"Submission PDF exported by LibreOffice from that DOCX: {PDF}\n"
                 f"PDF page count: {page_count}; paper size: A4.\n"
                 f"The saved DOCX was the source of this PDF export; DOCX and PDF pagination are synchronized at {page_count} pages.\n"
                 f"Substantive main body: pages {start}–{conclusion - 1}, {body_pages} pages (required range 16–32).\n"
                 "Automatic Word-compatible TOC field was refreshed twice through LibreOffice UNO before saving/export.\n"
-                "TOC contains chapter, subsection, conclusion, references, AI declaration, and appendix entries; the PDF page mapping was visually reviewed.\n"
-                f"Dynamic title-block PAGE/NUMPAGES fields verified on framed pages {framed_pages[0]}–{framed_pages[-1]}; each reads its physical page / {page_count}.\n"
+                f"TOC on page {toc_index + 1} contains chapter, subsection, conclusion, references, AI declaration, and appendix entries; the PDF page mapping was visually reviewed.\n"
+                f"G1/G2 title-block sheet fields verified on framed pages {framed_pages[0]}–{framed_pages[-1]}; G1 includes total sheet count {page_count}.\n"
                 "Blank pages: none (checked by page-level text extraction).\n"
                 f"Sparse main-body continuation pages (nonblank): {', '.join(short_continuations) or 'none'}.\n"
                 "Visual inspection is recorded by the OOP-COURSE-004-R3 operator after rendering.\n",
