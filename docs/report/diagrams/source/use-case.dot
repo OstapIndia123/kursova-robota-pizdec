@@ -1,0 +1,18 @@
+digraph UseCases {
+  graph [rankdir=TB, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.45, fontname="Liberation Serif"];
+  node [fontname="Liberation Serif", fontsize=12, color="#334155"];
+  edge [fontname="Liberation Serif", fontsize=10, color="#475569", arrowsize=0.8];
+  user [shape=plaintext, label="Користувач"];
+  subgraph cluster_app {
+    label="Програма обчислення V/S"; color="#64748b"; style="rounded";
+    input [shape=ellipse, label="Вибрати TXT-файл"];
+    process [shape=ellipse, label="Опрацювати записи\nта перевірити дані"];
+    calc [shape=ellipse, label="Обчислити V, S, V/S\nдля трьох типів фігур"];
+    errors [shape=ellipse, label="Переглянути помилки\nз номерами рядків"];
+    output [shape=ellipse, label="Зберегти результати\nу TXT та показати в консолі"];
+    input -> process -> calc -> output;
+    process -> errors [label="некоректний запис"];
+    errors -> output [label="продовжити обробку"];
+  }
+  user -> input; user -> output [dir=back]; user -> errors [dir=back];
+}

@@ -1,0 +1,13 @@
+OOP-COURSE-004-R2 render record
+
+Headless command (run from project root):
+env -u DISPLAY -u WAYLAND_DISPLAY HOME=/tmp/lo-oop-r2-home SAL_USE_VCLPLUGIN=svp timeout 90s libreoffice --headless --norestore --nodefault --nolockcheck --nofirststartwizard -env:UserInstallation=file:///tmp/lo-oop-r2-profile-release --convert-to pdf --outdir /tmp/lo-oop-r2-output docs/report/coursework.docx
+
+Result: exit 0; direct conversion of the original coursework.docx succeeded. The output was rendered to /tmp/lo-oop-r2-output/coursework.pdf for comparison and is not a project deliverable.
+
+Reference PDF: docs/report/coursework.pdf — 31 A4 pages; 21 substantive main-body pages; generator reported 0 overflow flags.
+LibreOffice DOCX render: 34 A4 pages; main body occupies 24 pages (within the specified 16–32 range). Three source-page sections spill onto extra physical pages: after source pages 5, 7 and 12 (physical pages 6, 8 and 13).
+
+Visual inspection: cover, contents, representative body/overflow pages, class diagram, sequence diagram, use-case diagram, both flowchart sheets and screenshot-placeholder page were inspected. Text and diagrams remain within page bounds. Flowchart labels are legible at enlarged view. PDF text extraction and page mapping were checked for references, AI declaration and appendices; those pages were not all individually raster-inspected. The G2 frame and title-block table render on checked framed pages; title-block sheet number and total use dynamic PAGE/NUMPAGES fields and were verified on the 34-page render. Static contents references still follow the 31-page reference PDF, so the converted DOCX contents is stale. The DOCX and reference PDF therefore are not visually/paginationally equivalent, and the DOCX is not ready for final print without repagination and title-block/contents refresh in the target editor. No clipping observed in the inspected pages.
+
+Formatting evidence: both outputs are A4. The authored source specifies Times New Roman 14 pt body, 1.5 line spacing, 10 mm first-line indent, justified body text, and 25/15/20/25 mm margins. LibreOffice substituted/rendered using available Liberation Serif-compatible metrics in this environment; no claim of exact font-metric equivalence is made.

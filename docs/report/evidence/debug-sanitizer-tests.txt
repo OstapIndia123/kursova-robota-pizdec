@@ -1,0 +1,33 @@
+$ cmake --build build-audit --parallel
+[ 63%] Built target coursework_core
+[100%] Built target coursework_tests
+[100%] Built target shape_ratio
+
+$ ctest --test-dir build-audit --output-on-failure
+Test project /home/ostaplindia/Projects/oop-coursework-2026/build-audit
+    Start 1: coursework_tests
+1/1 Test #1: coursework_tests .................   Passed    0.01 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   0.01 sec
+
+$ ./build-audit/coursework_tests
+All 66 assertions passed.
+
+$ cmake --build build-sanitize --parallel
+[ 63%] Built target coursework_core
+[100%] Built target coursework_tests
+[100%] Built target shape_ratio
+
+$ ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-sanitize --output-on-failure
+Test project /home/ostaplindia/Projects/oop-coursework-2026/build-sanitize
+    Start 1: coursework_tests
+1/1 Test #1: coursework_tests .................   Passed    0.02 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   0.03 sec
+
+$ ASAN_OPTIONS=detect_leaks=0 ./build-sanitize/coursework_tests
+All 66 assertions passed.

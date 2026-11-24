@@ -1,0 +1,19 @@
+digraph ProcessingB {
+  graph [rankdir=TB, bgcolor="white", pad=0.25, nodesep=0.35, ranksep=0.48, fontname="Liberation Serif"];
+  node [fontname="Liberation Serif", fontsize=18, color="#334155", style=filled, fillcolor="#f7f9fc"];
+  edge [fontname="Liberation Serif", fontsize=15, color="#475569", arrowsize=0.8];
+  start [shape=oval, label="Частина Б: отримати\nвалідний запис"];
+  create [shape=box, label="ShapeFactory створює\nunique_ptr<Shape3D>"];
+  calc [shape=box, label="Поліморфно обчислити\nV, S і ratio()"];
+  collect [shape=box, label="Додати результат\nдо набору"];
+  next [shape=oval, label="Повернутися до читання\nв частині А"];
+  eof [shape=oval, label="Кінець вхідного файла\n(частина А)"];
+  distinct [shape=diamond, label="Вхід і вихід —\nрізні файли?"];
+  write [shape=box, label="Однаково сформувати\nконсольний і TXT-звіт"];
+  status [shape=oval, label="Завершити: статус 0 або 1"];
+  fatal [shape=oval, label="Повідомити про помилку\nі завершити зі статусом 2"];
+  start -> create -> calc -> collect -> next;
+  eof -> distinct;
+  distinct -> write [label="так"]; distinct -> fatal [label="ні"];
+  write -> status;
+}

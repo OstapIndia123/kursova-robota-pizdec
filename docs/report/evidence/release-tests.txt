@@ -1,0 +1,16 @@
+$ cmake --build build --parallel
+[ 63%] Built target coursework_core
+[ 81%] Built target shape_ratio
+[100%] Built target coursework_tests
+
+$ ctest --test-dir build --output-on-failure
+Test project /home/ostaplindia/Projects/oop-coursework-2026/build
+    Start 1: coursework_tests
+1/1 Test #1: coursework_tests .................   Passed    0.00 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   0.01 sec
+
+$ ./build/coursework_tests
+All 66 assertions passed.

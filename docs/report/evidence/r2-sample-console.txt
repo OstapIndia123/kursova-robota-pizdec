@@ -1,0 +1,3 @@
+Input TXT path: Output TXT path (press Enter for <input-stem>.out.txt): line=2 type=cone volume=37.6991118431 surface_area=75.3982236862 ratio=0.5000000000
+line=3 type=cylinder volume=62.8318530718 surface_area=87.9645943005 ratio=0.7142857143
+line=4 type=tetrahedron volume=0.1666666667 surface_area=2.3660254038 ratio=0.0704416218

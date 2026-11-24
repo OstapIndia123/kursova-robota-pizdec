@@ -1,0 +1,23 @@
+digraph CourseworkClasses {
+  graph [rankdir=TB, bgcolor="white", pad=0.25, nodesep=0.55, ranksep=0.7, fontname="Liberation Serif"];
+  node [shape=record, style="rounded,filled", fillcolor="#f7f9fc", color="#334155", fontname="Liberation Serif", fontsize=12, margin="0.12,0.08"];
+  edge [color="#475569", fontname="Liberation Serif", fontsize=10, arrowsize=0.8];
+  Shape3D [label="{«абстрактний клас» Shape3D|+ volume() : double — pure virtual\l+ surfaceArea() : double — pure virtual\l+ typeName() : string — pure virtual\l+ ratio() : double\l+ virtual ~Shape3D()\l}"];
+  Cone [label="{Cone|− radius_ : double\l− height_ : double\l|+ volume() : double\l+ surfaceArea() : double\l+ typeName() : string\l}"];
+  Cylinder [label="{Cylinder|− radius_ : double\l− height_ : double\l|+ volume() : double\l+ surfaceArea() : double\l+ typeName() : string\l}"];
+  Tetrahedron [label="{Tetrahedron|− a_, b_, c_, d_ : Vector3D\l|+ volume() : double\l+ surfaceArea() : double\l+ typeName() : string\l}"];
+  Vector3D [label="{Vector3D|+ x, y, z : double\l|+ operator−()\l+ operator/()\l+ cross()\l+ dot()\l+ norm()\l+ isFinite()\l}"];
+  ShapeFactory [label="{ShapeFactory|+ create(type, parameters) : unique_ptr<Shape3D>\l}"];
+  FileProcessor [label="{FileProcessor|+ process(path) : vector<RecordResult>\l}"];
+  RecordResult [label="{RecordResult|+ lineNumber : size_t\l+ shape : string\l+ object : unique_ptr<Shape3D>\l+ error : string\l}"];
+  ResultWriter [label="{ResultWriter|+ write(results, console, outputPath, inputPath)\l}"];
+  {rank=same; Cone; Cylinder; Tetrahedron}
+  {rank=same; ShapeFactory; FileProcessor; ResultWriter}
+  Cone -> Shape3D [arrowhead=empty]; Cylinder -> Shape3D [arrowhead=empty]; Tetrahedron -> Shape3D [arrowhead=empty];
+  Tetrahedron -> Vector3D [arrowhead=odiamond, label="4 вершини"];
+  ShapeFactory -> Shape3D [style=dashed, label="створює"];
+  FileProcessor -> ShapeFactory [style=dashed, label="викликає"];
+  FileProcessor -> RecordResult [arrowhead=odiamond, label="формує"];
+  RecordResult -> Shape3D [arrowhead=odiamond, label="володіє"];
+  ResultWriter -> RecordResult [style=dashed, label="форматує"];
+}

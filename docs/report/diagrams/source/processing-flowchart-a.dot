@@ -1,0 +1,25 @@
+digraph ProcessingA {
+  graph [rankdir=TB, bgcolor="white", pad=0.25, nodesep=0.3, ranksep=0.42, fontname="Liberation Serif"];
+  node [fontname="Liberation Serif", fontsize=18, color="#334155", style=filled, fillcolor="#f7f9fc"];
+  edge [fontname="Liberation Serif", fontsize=15, color="#475569", arrowsize=0.8];
+  start [shape=oval, label="Початок"];
+  paths [shape=parallelogram, label="Ввести шляхи до input TXT\nта output TXT"];
+  opened [shape=diamond, label="Вхідний файл\nвідкрито?"];
+  read [shape=parallelogram, label="Прочитати рядок\nі збільшити номер"];
+  eof [shape=diamond, label="Кінець файла?"];
+  clean [shape=box, label="Відкинути коментар\nта пропуски"];
+  empty [shape=diamond, label="Рядок порожній?"];
+  parse [shape=box, label="Розібрати тип, точну\nкількість і числа"];
+  valid [shape=diamond, label="Запис і геометрія\nкоректні?"];
+  error [shape=box, label="Зберегти помилку\nз номером рядка"];
+  accepted [shape=box, label="Передати валідний запис\nдо частини Б"];
+  fatal [shape=oval, label="Повідомити про помилку\nвхідного файла"];
+  done [shape=oval, label="Перейти до частини Б:\nпідсумковий запис"];
+  start -> paths -> opened;
+  opened -> read [label="так"]; opened -> fatal [label="ні"];
+  read -> eof; eof -> clean [label="ні"]; eof -> done [label="так"];
+  clean -> empty; empty -> read [label="так"];
+  empty -> parse [label="ні"]; parse -> valid;
+  valid -> accepted [label="так"]; valid -> error [label="ні"];
+  accepted -> read; error -> read;
+}

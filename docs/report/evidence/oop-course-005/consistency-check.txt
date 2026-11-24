@@ -1,0 +1,4 @@
+Sample dataset: examples/shapes.txt
+Program exit code: 0
+Valid output records: 3
+Console result rows equal output-file rows: yes (exact text comparison).

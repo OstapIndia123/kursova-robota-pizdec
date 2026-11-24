@@ -1,0 +1,40 @@
+IFNTUNG OOP Coursework 2026 — Variant 6 — Release Candidate
+Prepared: 2026-11-24
+
+Release archive: release-candidate/oop-coursework-variant6-rc-2026-11-24.zip
+Target branch: feature/oop-course-004-documentation
+Current repository HEAD: 8b291b9e39cc176d4d8aa19bdcb6be3e1e6ab1d9
+Note: documentation and release evidence are uncommitted workspace changes. No commit or push was made.
+
+Contents
+- CMakeLists.txt, .gitignore, README.md
+- include/, src/, tests/, examples/
+- docs/methodology.pdf (authoritative methodology, included unchanged)
+- docs/report/coursework.docx (canonical editable document)
+- docs/report/coursework.pdf (LibreOffice export from the canonical DOCX)
+- docs/report/coursework.md and docs/report/README.md
+- docs/report/diagrams/source/ and docs/report/diagrams/rendered/
+- docs/report/tools/build_report.py and finalize_docx.py
+- Explicitly labeled screenshot placeholder assets; no application screenshot is included
+- docs/report/evidence/final-pagination-report.txt
+- docs/report/evidence/oop-course-005/ clean build, CTest, executable, sample-run, and output-consistency records
+- This release manifest
+
+Verification performed
+- Fresh Release configure/build in build-oop-course-005-evidence completed with GNU C++ 16.2.0 and C++17.
+- CTest: 1/1 test entry passed; direct test executable: all 66 assertions passed.
+- Sample examples/shapes.txt run exited 0. Three output rows matched between console and output file exactly after removing the interactive prompt.
+- DOCX archive integrity passed. PDF is 34 A4 pages; substantive body is 24 pages (pages 5–28). The refreshed TOC and page fields correspond to the exported PDF.
+- Build and test directories and binaries are excluded from the archive.
+
+Release limitations / pending items
+- SCREENSHOT_PENDING: docs/report/screenshots/application-run.png was not present, and no desktop screenshot capture facility is available in this session. No screenshot was fabricated.
+- Times New Roman is specified in the DOCX, but unavailable on this system; the PDF renderer substituted Liberation Serif.
+- Student, group, gradebook/document identifiers, supervisor, calendar dates, signatures, and approvals remain placeholders.
+- Instructor confirmation remains pending for total surface area, right circular cone/cylinder geometry, coordinate-defined general tetrahedron, and the 1e-12 degeneracy tolerance.
+- No compiled executable is packaged. The build is Linux-specific here; no Windows compatibility is asserted. Build on the intended demonstration platform using the included CMake project.
+
+Proposed documentation commit (not created):
+docs: finalize variant 6 coursework release candidate
+
+Suggested documentation staging scope: docs/report/ (including final DOCX/PDF, Markdown source, build instructions, diagrams, and verified evidence). Do not stage generated build directories or binaries. The release ZIP is a separate handoff artifact and is not required in the documentation commit.

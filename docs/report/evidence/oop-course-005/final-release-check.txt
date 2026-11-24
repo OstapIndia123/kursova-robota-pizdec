@@ -1,0 +1,32 @@
+OOP-COURSE-005 local release checks — 2026-11-24
+
+Application build
+- Fresh build directory: build-oop-course-005-evidence
+- Configure: cmake -S . -B build-oop-course-005-evidence -DCMAKE_BUILD_TYPE=Release — PASS
+- Build: cmake --build build-oop-course-005-evidence --parallel — PASS (all targets linked)
+- CTest: ctest --test-dir build-oop-course-005-evidence --output-on-failure — PASS, 1/1 test entries
+- Direct test executable: All 66 assertions passed.
+- Compiler: GNU 16.2.0; project CMake enables -Wall -Wextra -Wpedantic -Wconversion -Wshadow outside MSVC.
+
+Sample application
+- Input: examples/shapes.txt
+- Program exit: 0
+- Valid result records: cone, cylinder, tetrahedron (three rows)
+- Console result rows and output-file rows compared exactly after stripping the interactive prompts: identical.
+- Full console capture and output file: sample-console.txt and sample-output.txt.
+
+Submission documents
+- Canonical DOCX archive integrity: `unzip -t docs/report/coursework.docx` — no errors.
+- PDF: 34 A4 pages; substantive main body: 24 pages (5–28).
+- Automatic TOC and dynamic page fields refreshed; final pagination record: ../final-pagination-report.txt.
+- `fc-match 'Times New Roman'` resolves to Liberation Serif; `pdffonts` confirms the PDF embeds Liberation Serif. DOCX requests Times New Roman, but exact Times New Roman PDF rendering is unavailable here.
+
+Evidence and pending items
+- `docs/report/screenshots/application-run.png` absent. This session has no graphical screenshot capture tool. SCREENSHOT_PENDING; no screenshot fabricated.
+- Unknown student/supervisor/calendar/signature fields remain placeholders. Instructor approvals for the documented geometry interpretations and degeneracy threshold remain pending.
+- No compiled executable is included in the release ZIP because this build is Linux-specific and the demonstration platform has not been specified.
+
+Repository audit
+- Branch: feature/oop-course-004-documentation; HEAD: 8b291b9e39cc176d4d8aa19bdcb6be3e1e6ab1d9.
+- Git diff --check produced no output. The release work is uncommitted; no source, tests, CMake configuration, .gitignore, or methodology changes are reported in Git status.
+- ZIP is source-and-documentation only; build directories, caches, and binaries are excluded.

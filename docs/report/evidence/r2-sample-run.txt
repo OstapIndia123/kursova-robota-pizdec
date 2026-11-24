@@ -1,0 +1,5 @@
+Command: printf 'docs/report/evidence/r2-sample-input.txt\ndocs/report/evidence/r2-sample-output.txt\n' | ./build/shape_ratio
+Exit code: 0
+Input: r2-sample-input.txt
+Console capture: r2-sample-console.txt
+Output file: r2-sample-output.txt
