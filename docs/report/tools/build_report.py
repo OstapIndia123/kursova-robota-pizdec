@@ -443,9 +443,9 @@ def build_docx(pages: list[Page]) -> None:
                         count_field = xml_el(sheet, wtag("fldSimple"), {wtag("instr"): " NUMPAGES "})
                         add_run(count_field, str(len(pages)), size=16)
                     elif col_idx == 0:
-                        add_paragraph(cell, "Розробив: [ПІБ]     Перевірив: [керівник]", first_line=False, after=70, line=210, size=16)
+                        add_paragraph(cell, "Розробив: Павлюк О. М.     Перевірив: [керівник]", first_line=False, after=70, line=210, size=16)
                         add_paragraph(cell, "Н. контр.: [заповнити]     Затвердив: [заповнити]", first_line=False, after=70, line=210, size=16)
-                        add_paragraph(cell, "ІФНТУНГ · [група] · [ПІБ студента]", first_line=False, after=0, line=210, size=16)
+                        add_paragraph(cell, "ІФНТУНГ · КІ-26-1К · Павлюк О. М.", first_line=False, after=0, line=210, size=16)
                     else:
                         add_paragraph(cell, "Підписи й дати: [заповнюють відповідальні особи]", first_line=False, after=0, line=210, size=16)
         elif page.section == "framed":

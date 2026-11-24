@@ -2,21 +2,21 @@ OOP-COURSE-004-R3 final pagination verification
 
 Canonical editable document: /home/ostaplindia/Projects/oop-coursework-2026/docs/report/coursework.docx
 Submission PDF exported by LibreOffice from that DOCX: /home/ostaplindia/Projects/oop-coursework-2026/docs/report/coursework.pdf
-PDF page count: 34; paper size: A4.
-The saved DOCX was the source of this PDF export; DOCX and PDF pagination are synchronized at 34 pages.
-Substantive main body: pages 5–28, 24 pages (required range 16–32).
+PDF page count: 35; paper size: A4.
+The saved DOCX was the source of this PDF export; DOCX and PDF pagination are synchronized at 35 pages.
+Substantive main body: pages 5–29, 25 pages (required range 16–32).
 Automatic Word-compatible TOC field was refreshed twice through LibreOffice UNO before saving/export.
 TOC contains chapter, subsection, conclusion, references, AI declaration, and appendix entries; the PDF page mapping was visually reviewed.
-Dynamic title-block PAGE/NUMPAGES fields verified on framed pages 4–31; each reads its physical page / 34.
+Dynamic title-block PAGE/NUMPAGES fields verified on framed pages 4–32; each reads its physical page / 35.
 Blank pages: none (checked by page-level text extraction).
-Sparse main-body continuation pages (nonblank): 6 (3 text lines), 12 (2 text lines).
+Sparse main-body continuation pages (nonblank): 6 (3 text lines), 12 (2 text lines), 28 (2 text lines).
 Visual inspection is recorded by the OOP-COURSE-004-R3 operator after rendering.
 
-Manual visual review for this R3 render:
-- Rendered all 34 pages to page images and reviewed three contact sheets; no blank pages, clipping, or truncated diagrams were observed.
-- The G1 title block is on the contents sheet (page 4); G2 title blocks are positioned on framed pages 5–31. PAGE/NUMPAGES values match the physical page and 34-page total.
-- Appendices occupy pages 32–34 using the current unframed appendix layout.
-- The class diagram is together with caption Рисунок 2.1 on page 14. Sequence and use-case diagrams are numbered 2.2 and 2.3 in order; flowchart sheets are 3.1а/3.1б. The screenshot placeholder remains clearly labeled and is not execution evidence.
-- The contents entries were compared with the rendered section starts. Reference citations [1] and [2], the bibliography, AI declaration, and administrative placeholders were checked in the rendered document.
-- DOCX page setup retains A4, 25/15/20/25 mm margins, Times New Roman 14 pt body text, 1.5 line spacing, 10 mm first-line indentation, justified paragraphs, and dynamic title-block page fields. This environment resolves Times New Roman to Liberation Serif for PDF rendering.
-- Pages 6 and 12 are short nonblank continuations (3 and 2 body text lines). The previous one-word orphan was removed by a concise wording edit that preserves the original meaning.
+OOP-COURSE-007 screenshot and release QA — 2026-11-24
+
+- Supplied `docs/report/screenshots/application-run.png` validated as PNG, 931×484 RGB. It shows the real application run and all three computed result rows; the displayed values exactly match the saved sample console and output records. The long terminal lines wrap at the screenshot's right edge, but all numeric results remain readable.
+- Replaced the placeholder in Markdown with the screenshot and caption Figure 3.2. Updated section 3.7 and appendix/rebuild reminders; retained legacy placeholder assets but they are not referenced in the note.
+- Screenshot binary is embedded in the canonical DOCX (package media hash matches the source PNG) and rendered on PDF page 27. It is legible at document scale.
+- PDF rasterized page-by-page into a 35-page contact sheet; inspected the complete sheet and page 27 at full size. No blank pages, clipped text, truncated diagrams, displaced frames, or incorrect title blocks observed. G1/G2 title blocks and page counters remain aligned; appendices retain their methodological layout.
+- Refreshed TOC maps section 3.7 to page 27, conclusions to page 30, references to page 31, AI declaration to page 32, and appendices to pages 33–35.
+- A4 PDF: 35 pages total; substantive main body pages 5–29, 25 pages. No source code, tests, or methodology changes were made.

@@ -8,6 +8,8 @@ import socket
 import subprocess
 import tempfile
 import time
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import uno
@@ -16,6 +18,35 @@ from com.sun.star.beans import PropertyValue
 REPORT = Path(__file__).resolve().parents[1]
 DOCX = REPORT / "coursework.docx"
 PDF = REPORT / "coursework.pdf"
+CORE_NS = {
+    "cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+    "dc": "http://purl.org/dc/elements/1.1/",
+}
+
+
+def set_docx_core_metadata() -> None:
+    """Set identity metadata in the DOCX package without rewriting document parts."""
+    temp_path = DOCX.with_suffix(".metadata.tmp")
+    with zipfile.ZipFile(DOCX, "r") as source, zipfile.ZipFile(temp_path, "w") as target:
+        for item in source.infolist():
+            data = source.read(item.filename)
+            if item.filename == "docProps/core.xml":
+                root = ET.fromstring(data)
+                values = {
+                    "title": ("dc", "Розрахунок відношення об’єму фігури до її площі: конус, тетраедр, циліндр"),
+                    "subject": ("dc", "Курсова робота з об’єктно-орієнтованого програмування, варіант № 6"),
+                    "creator": ("dc", "Павлюк Остап Мирославович"),
+                    "language": ("dc", "uk-UA"),
+                }
+                for local_name, (prefix, value) in values.items():
+                    tag = f"{{{CORE_NS[prefix]}}}{local_name}"
+                    element = root.find(tag)
+                    if element is None:
+                        element = ET.SubElement(root, tag)
+                    element.text = value
+                data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+            target.writestr(item, data)
+    temp_path.replace(DOCX)
 
 
 def props(**values):
@@ -72,12 +103,29 @@ def main() -> int:
                 props(Hidden=True, ReadOnly=False, UpdateDocMode=3))
             if document is None:
                 raise RuntimeError("LibreOffice could not load the canonical DOCX")
+            # Keep the package-level metadata consistent with the confirmed
+            # student identity and the title shown on the cover page.
+            metadata = document.getDocumentProperties()
+            for name, value in {
+                "Title": "Розрахунок відношення об’єму фігури до її площі: конус, тетраедр, циліндр",
+                "Subject": "Курсова робота з об’єктно-орієнтованого програмування, варіант № 6",
+                "Author": "Павлюк Остап Мирославович",
+                "Creator": "Павлюк Остап Мирославович",
+                "Keywords": "ІФНТУНГ; КІ-26-1К; варіант 6; C++17",
+            }.items():
+                try:
+                    metadata.setPropertyValue(name, value)
+                except Exception:
+                    # Some LibreOffice builds expose only a subset of the
+                    # standard metadata properties (for example, no Creator).
+                    pass
             indexes = document.getDocumentIndexes()
             for _ in range(2):
                 for idx in range(indexes.getCount()):
                     indexes.getByIndex(idx).update()
             document.storeAsURL(DOCX.as_uri(), props(
                 FilterName="Office Open XML Text", Overwrite=True))
+            set_docx_core_metadata()
             document.storeToURL(PDF.as_uri(), props(
                 FilterName="writer_pdf_Export", Overwrite=True))
             info = subprocess.run(["pdfinfo", str(PDF)], check=True, capture_output=True, text=True).stdout
